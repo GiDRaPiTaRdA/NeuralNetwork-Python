@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>10 × 10 Pixel Drawer</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#1d2433;background:#f5f7fb}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}.app{width:min(100%,560px);background:white;padding:28px;border-radius:18px;box-shadow:0 12px 45px #26334d17}h1{margin:0 0 7px;font-size:26px}p{color:#647084;margin:0 0 22px}.grid{display:grid;grid-template-columns:repeat(10,1fr);aspect-ratio:1;border:2px solid #273142;background:#cbd2dc;gap:1px;touch-action:none;user-select:none}.pixel{background:white;cursor:crosshair}.pixel.on{background:#000}.tools{display:flex;flex-wrap:wrap;gap:9px;margin:18px 0}button{border:1px solid #d1d7e2;background:white;color:#1d2433;border-radius:9px;padding:10px 15px;font-size:14px;font-weight:600;cursor:pointer}button.active{background:#1d2433;color:white;border-color:#1d2433}button:hover{filter:brightness(.94)}textarea{width:100%;height:110px;resize:vertical;border:1px solid #d1d7e2;border-radius:9px;padding:12px;font:13px/1.5 ui-monospace,monospace}label{font-weight:650;font-size:14px;display:block;margin-bottom:8px}.hint{font-size:12px;margin-top:9px;color:#647084}
+</style>
+</head>
+<body><main class="app"><h1>10 × 10 Pixel Drawer</h1><p>Draw in black. Each cell is one pixel.</p><div id="grid" class="grid" aria-label="10 by 10 drawing grid"></div><div class="tools"><button id="draw" class="active">✏ Draw</button><button id="erase">◻ Erase</button><button id="clear">Clear</button><button id="copy">Copy 100 values</button><button id="download">Save PNG</button></div><label for="output">Neural network input (100 values)</label><textarea id="output" readonly spellcheck="false"></textarea><div class="hint">Black = 1, white = 0. Click or drag to draw. Export values row by row.</div></main>
+<script>
+const pixels=Array(100).fill(0),grid=document.getElementById('grid'),output=document.getElementById('output');let mode=1,painting=false;
+function refresh(){output.value='['+pixels.join(', ')+']';[...grid.children].forEach((cell,i)=>cell.classList.toggle('on',pixels[i]===1));}
+function paint(i){pixels[i]=mode;refresh();}
+for(let i=0;i<100;i++){const cell=document.createElement('div');cell.className='pixel';cell.dataset.index=i;grid.appendChild(cell);}
+grid.addEventListener('pointerdown',e=>{const cell=e.target.closest('.pixel');if(!cell)return;painting=true;paint(+cell.dataset.index);grid.setPointerCapture(e.pointerId);});
+grid.addEventListener('pointermove',e=>{if(!painting)return;const el=document.elementFromPoint(e.clientX,e.clientY);const cell=el?.closest('.pixel');if(cell&&grid.contains(cell))paint(+cell.dataset.index);});
+grid.addEventListener('pointerup',()=>painting=false);grid.addEventListener('pointercancel',()=>painting=false);
+function setMode(next){mode=next;document.getElementById('draw').classList.toggle('active',mode===1);document.getElementById('erase').classList.toggle('active',mode===0);}
+document.getElementById('draw').onclick=()=>setMode(1);document.getElementById('erase').onclick=()=>setMode(0);
+document.getElementById('clear').onclick=()=>{pixels.fill(0);refresh();};
+document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(output.value);}catch{output.select();document.execCommand('copy');}};
+document.getElementById('download').onclick=()=>{const canvas=document.createElement('canvas');canvas.width=10;canvas.height=10;const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,10,10);ctx.fillStyle='#000';pixels.forEach((v,i)=>{if(v)ctx.fillRect(i%10,Math.floor(i/10),1,1)});const link=document.createElement('a');link.download='drawing-10x10.png';link.href=canvas.toDataURL('image/png');link.click();};
+refresh();
+</script></body></html>

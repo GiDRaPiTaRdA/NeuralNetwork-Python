@@ -1,3 +1,5 @@
+name: neural-network-composed
+
 services:
   neural-network:
     container_name: neural-network

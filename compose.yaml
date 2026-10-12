@@ -1,0 +1,7 @@
+services:
+  neural-network:
+    container_name: neural-network
+    build: .
+    ports:
+      - "5000:5000"
+    restart: unless-stopped

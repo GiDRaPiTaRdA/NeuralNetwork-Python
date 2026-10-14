@@ -2,6 +2,8 @@
   "name": "Neural Network Digit Recognition",
   "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
   "postCreateCommand": "pip install -r requirements.txt",
+  "runArgs": ["--name", "neural-network-dev"],
+  "forwardPorts": [5000],
   "customizations": {
     "vscode": {
       "extensions": [

@@ -1,11 +1,35 @@
 import numpy as np
 from activationFunctions.sigmoid import SigmoidActivation
+from abc import ABC, abstractmethod
+from numpy.typing import NDArray
 
 WEIGHT_MIN = -0.5
 WEIGHT_MAX = 0.5
 
+class ILayer(ABC):
+
+    @abstractmethod
+    def activate(self, inputs: NDArray[np.float64]) -> NDArray[np.float64]:
+        pass
+
+    @abstractmethod
+    def backward(
+        self,
+        error: NDArray[np.float64],
+        output: NDArray[np.float64],
+        previous: NDArray[np.float64],
+        learning_rate: float
+    ) -> NDArray[np.float64]:
+        pass
+
+    def save(self) -> dict[str, np.ndarray]:
+        return {}
+
+    def load(self, data: dict[str, np.ndarray]) -> None:
+        pass
+
 class NeuralNetwork:
-    def __init__(self, layers):
+    def __init__(self, layers: list[ILayer]):
         self.layers = layers
 
     # Mean Squared Error (MSE)
@@ -67,7 +91,8 @@ class ConvLayer:
         self.weights = np.random.randn(num_filters, filter_size, filter_size) * 0.1
         self.biases = np.zeros(num_filters)
 
-class Layer:
+
+class Layer(ILayer):
     def __init__(self, input_count, neuron_count, activationFunction=SigmoidActivation()):
         self.activation_fucntion = activationFunction
         self.weights = np.random.uniform(

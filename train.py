@@ -1,7 +1,7 @@
 """Simple matrix multiplication example. No neural network implementation."""
 import numpy as np
 import ast
-from neural_network import NeuralNetwork, Layer, TrainCase
+from neural_network import NeuralNetwork, Layer
 from data.data_loader import DataLoader
 
 def train_network(network, cases, epochs, learning_rate):
@@ -51,7 +51,11 @@ epochs = 500
 learning_rate = 0.1
 modelName = "models/model.npz"
 
-network = NeuralNetwork([100,64,32,10])
+network = NeuralNetwork([
+    Layer(100, 64),
+    Layer(64, 32),
+    Layer(32, 10)
+])
 
 train_network(network, cases, epochs, learning_rate)
 

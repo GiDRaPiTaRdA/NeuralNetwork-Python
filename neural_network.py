@@ -1,40 +1,26 @@
 import numpy as np
-from abc import ABC, abstractmethod
 from activationFunctions.sigmoid import SigmoidActivation
 
 WEIGHT_MIN = -0.5
 WEIGHT_MAX = 0.5
 
 class NeuralNetwork:
-    def __init__(self, pattern, activation_function=SigmoidActivation()):
-        self.layers = []
-        self.activation_function = activation_function
+    def __init__(self, layers):
+        self.layers = layers
 
-        for i in range(1, len(pattern)):
-            layer = Layer(pattern[i - 1], pattern[i])
-            self.layers.append(layer)
-
+    # Mean Squared Error (MSE)
     def calculate_error(self, predicted, expected):
         return np.mean((predicted - expected) ** 2)
 
     def forward(self, inputs):
-        values = np.array(inputs)
-
-        for layer in self.layers:
-            values = self.activation_function.function(
-                layer.weights @ values + layer.bias
-            )
-
-        return values
-
+        return self.forwardActivations(inputs)[-1]
+    
     # Forward propagation: remember every layer's values
     def forwardActivations(self, inputs):
         activations = [np.array(inputs, dtype=float)]
 
         for layer in self.layers:
-            values = self.activation_function.function(
-                layer.weights @ activations[-1] + layer.bias
-            )
+            values = layer.activate(activations[-1])
             activations.append(values)
 
         return activations
@@ -68,20 +54,22 @@ class NeuralNetwork:
             output = activations[i + 1]
             previous = activations[i]
 
-            # Function derivative and error gradient
-            delta = error * self.activation_function.derivative(output)
-
-            # Propagate error backward BEFORE updating weights
-            error = layer.weights.T @ delta
-
-            # Update weights and biases
-            layer.update(delta, previous, learning_rate)
+            error = layer.backward(error, output, previous, learning_rate)
 
         # Mean squared error at the output layer
         return self.calculate_error(activations[-1], expected)
 
+# 8x3x3
+# 8 filters
+# each filter is 3x3 matrix
+class ConvLayer:
+    def __init__(self, num_filters=8, filter_size=3):
+        self.weights = np.random.randn(num_filters, filter_size, filter_size) * 0.1
+        self.biases = np.zeros(num_filters)
+
 class Layer:
-    def __init__(self, input_count, neuron_count):
+    def __init__(self, input_count, neuron_count, activationFunction=SigmoidActivation()):
+        self.activation_fucntion = activationFunction
         self.weights = np.random.uniform(
             WEIGHT_MIN, WEIGHT_MAX, (neuron_count, input_count)
         )
@@ -90,6 +78,21 @@ class Layer:
     def update(self, delta, previous, learning_rate):
         self.weights -= learning_rate * np.outer(delta, previous)
         self.bias -= learning_rate * delta
+
+    def backward(self, error,output, previous, learning_rate):
+         # Function derivative and error gradient
+        delta = error * self.activation_fucntion.derivative(output)
+        # Propagate error backward BEFORE updating weights
+        error = self.weights.T @ delta
+        # Update weights and biases
+        self.update(delta, previous, learning_rate)
+        return error
+
+    def activate(self, inputs):
+        output = self.weights @ inputs + self.bias
+        activation = self.activation_fucntion.function(output)
+        return activation
+        
 
 class TrainCase:
     def __init__(self, inputs, expected):

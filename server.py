@@ -1,10 +1,14 @@
 from flask import Flask, request, jsonify, send_file
-from neural_network import NeuralNetwork
+from neural_network import NeuralNetwork, Layer
 import numpy as np
 
 app = Flask(__name__)
 
-network = NeuralNetwork([100, 64, 32, 10])
+network = NeuralNetwork([
+    Layer(100, 64),
+    Layer(64, 32),
+    Layer(32, 10)
+])
 network.load("models/model.npz")
 
 

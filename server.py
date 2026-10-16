@@ -1,15 +1,20 @@
 from flask import Flask, request, jsonify, send_file
-from neural_network import NeuralNetwork, Layer
+from layers.Layer import DenseLayer
+from neural_network import NeuralNetwork
+from model_storage import ModelStorage
+from layers.ConvLayer import ConvLayer
 import numpy as np
 
 app = Flask(__name__)
 
-network = NeuralNetwork([
-    Layer(100, 64),
-    Layer(64, 32),
-    Layer(32, 10)
-])
-network.load("models/model.npz")
+network = NeuralNetwork(
+    ModelStorage("models/model_conv.npz"),
+    [
+        ConvLayer(8,3), # outputs 512 8 filters 3 by 3
+        DenseLayer(512, 64),
+        DenseLayer(64, 10)
+    ])
+network.load()
 
 
 @app.route("/")
@@ -25,7 +30,8 @@ def guess():
     if not isinstance(pixels, list) or len(pixels) != 100:
         return jsonify({"error": "Expected 100 pixels"}), 400
 
-    outputs = network.forwardActivations(pixels)[-1]
+    resh = np.asarray(pixels).reshape(10, 10)
+    outputs = network.forwardActivations(resh)[-1]
 
     return jsonify({
         "prediction": int(np.argmax(outputs)),

@@ -1,18 +1,22 @@
 import ast
 import numpy as np
-from neural_network import NeuralNetwork, Layer
+from layers.Layer import DenseLayer
+from neural_network import NeuralNetwork
 
-modelName = "models/model.npz"
+from layers.ConvLayer import ConvLayer
+from layers.Layer import DenseLayer
+from model_storage import ModelStorage
 
-network = NeuralNetwork([100,64,32,10])
+network = NeuralNetwork(
+    ModelStorage("models/model_conv.npz"),
+    [
+        ConvLayer(8,3), # outputs 512 8 filters 3 by 3
+        DenseLayer(512, 32),
+        DenseLayer(32, 10)
+    ])
+network.load()
 
-network = NeuralNetwork([
-    Layer(100, 64),
-    Layer(64, 32),
-    Layer(32, 10)
-])
-
-network.load(modelName)
+network.load()
 
 def input_prediction(network):
     while True:

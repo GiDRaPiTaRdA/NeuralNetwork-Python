@@ -1,8 +1,11 @@
 """Simple matrix multiplication example. No neural network implementation."""
 import numpy as np
 import ast
-from neural_network import NeuralNetwork, Layer
+from layers.Layer import DenseLayer
+from neural_network import NeuralNetwork
 from data.data_loader import DataLoader
+from model_storage import ModelStorage
+from layers.ConvLayer import ConvLayer
 
 def train_network(network, cases, epochs, learning_rate):
     for epoch in range(epochs):
@@ -10,7 +13,7 @@ def train_network(network, cases, epochs, learning_rate):
 
         for case in cases:
             error = network.train(
-                case.inputs,
+                np.asarray(case.inputs).reshape(10, 10),
                 case.expected,
                 learning_rate
             )
@@ -49,23 +52,32 @@ cases = loader.load()
 # training
 epochs = 500
 learning_rate = 0.1
-modelName = "models/model.npz"
+modelName = "models/model_conv.npz"
 
-network = NeuralNetwork([
-    Layer(100, 64),
-    Layer(64, 32),
-    Layer(32, 10)
-])
+# network = NeuralNetwork([
+#     DenseLayer(100, 64),
+#     DenseLayer(64, 32),
+#     DenseLayer(32, 10)
+# ])
+
+network = NeuralNetwork(
+    ModelStorage("models/model_conv.npz"),
+    [
+        ConvLayer(8,3), # outputs 512 8 filters 3 by 3
+        DenseLayer(512, 32),
+        DenseLayer(32, 10)
+    ])
 
 train_network(network, cases, epochs, learning_rate)
 
 # test
 inputs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-prediction = network.forwardActivations(inputs)[-1]
+resh = np.asarray(inputs).reshape(10, 10)
+prediction = network.forwardActivations(resh)[-1]
 
 # visualize prediction
-visualize_prediction(inputs, network)
+visualize_prediction(resh, network)
 
 # save model
-network.save(modelName)
+network.save()
 print(f"Model saved to {modelName}")
